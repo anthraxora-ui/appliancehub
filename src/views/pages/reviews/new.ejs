@@ -1,0 +1,42 @@
+<%#
+  pages/reviews/new.ejs  -  buyer rates the seller after a completed purchase
+  Data from reviewController: request (seller populated), values {rating, comment}, errors[]
+
+  The 5 stars are radio buttons styled with CSS (no JavaScript needed):
+  they're listed 5 → 1 and displayed right-to-left, so hovering or checking
+  a star also highlights every star "before" it.
+%>
+<%- include('../../partials/header') %>
+
+<section class="section narrow">
+  <h1>Review <%= request.seller.name %></h1>
+  <p class="muted">You bought <strong><%= request.listingTitle %></strong> for <%= formatPrice(request.offerPrice) %> on <%= formatDate(request.completedAt) %>.</p>
+
+  <form action="/reviews" method="POST" class="form panel">
+    <input type="hidden" name="request" value="<%= request._id %>">
+
+    <fieldset class="star-input">
+      <legend>Your rating *</legend>
+      <div class="stars-row">
+        <% for (let s = 5; s >= 1; s--) { %>
+          <input type="radio" id="star<%= s %>" name="rating" value="<%= s %>" <%= String(values.rating) === String(s) ? 'checked' : '' %>>
+          <label for="star<%= s %>" title="<%= s %> star<%= s > 1 ? 's' : '' %>">★</label>
+        <% } %>
+      </div>
+      <small class="muted">1 = very poor · 5 = excellent</small>
+    </fieldset>
+
+    <label>Comment <span class="muted">(optional, max 1000 characters)</span>
+      <textarea name="comment" rows="5" maxlength="1000"
+                placeholder="Was the item as described? Was the seller on time and easy to deal with?"><%= values.comment || '' %></textarea>
+    </label>
+
+    <p class="muted small">Your review is public and appears on the seller's profile with your name.</p>
+    <div class="form-actions">
+      <button type="submit" class="btn">Post review</button>
+      <a href="/requests/purchases" class="btn btn-outline">Cancel</a>
+    </div>
+  </form>
+</section>
+
+<%- include('../../partials/footer') %>
