@@ -1,0 +1,115 @@
+<%#
+  pages/listings/form.ejs  -  CREATE and EDIT listing (one template, two modes)
+  Data from listingController.renderForm:
+    mode ('create'|'edit'), values, errors[], listingId, existingPhotos[],
+    categories[], conditions[], maxPhotos, maxPhotoBytes, maxPhotoMb
+
+  The "Specifications" box is filled by public/js/listing-form.js, which asks
+  the server (/api/categories/:key/fields, served by the SIMPLE FACTORY) which
+  fields the chosen category has. data-values carries any values to prefill.
+%>
+<%- include('../../partials/header') %>
+
+<% const action = mode === 'create' ? '/listings' : '/listings/' + listingId; %>
+
+<section class="section narrow">
+  <h1><%= mode === 'create' ? 'Sell an appliance' : 'Edit listing' %></h1>
+
+  <%# enctype multipart/form-data is required to upload files %>
+  <form action="<%= action %>" method="POST" enctype="multipart/form-data" class="form" id="listing-form" novalidate>
+
+    <%# ---------- 1. Category ---------- %>
+    <div class="panel">
+      <h2>1. What are you selling?</h2>
+      <label>Category *
+        <select name="category" required>
+          <option value="">Choose a category…</option>
+          <% categories.forEach(function (c) { %>
+            <option value="<%= c.key %>" <%= values.category === c.key ? 'selected' : '' %>><%= c.icon %> <%= c.label %></option>
+          <% }) %>
+        </select>
+      </label>
+    </div>
+
+    <%# ---------- 2. Basic details (same for every category) ---------- %>
+    <div class="panel">
+      <h2>2. Details</h2>
+      <div class="form-row">
+        <label>Brand *
+          <input type="text" name="brand" value="<%= values.brand || '' %>" required maxlength="40" placeholder="e.g. Samsung">
+        </label>
+        <label>Model
+          <input type="text" name="model" value="<%= values.model || '' %>" maxlength="60" placeholder="e.g. RF28R7351SR">
+        </label>
+      </div>
+      <div class="form-row">
+        <label>Condition *
+          <select name="condition" required>
+            <option value="">Choose…</option>
+            <% conditions.forEach(function (c) { %>
+              <option value="<%= c %>" <%= values.condition === c ? 'selected' : '' %>><%= c %></option>
+            <% }) %>
+          </select>
+        </label>
+        <label>Price (CAD) *
+          <input type="number" name="price" value="<%= values.price != null ? values.price : '' %>" required min="0" max="100000" step="0.01" placeholder="0.00">
+        </label>
+      </div>
+      <label>City *
+        <input type="text" name="city" value="<%= values.city || '' %>" required maxlength="60" placeholder="e.g. Regina">
+      </label>
+    </div>
+
+    <%# ---------- 3. Category-specific specs (built by JavaScript) ---------- %>
+    <div class="panel">
+      <h2>3. Specifications</h2>
+      <div id="spec-fields" class="spec-fields" data-values="<%= JSON.stringify(values.specs || {}) %>">
+        <p class="muted">Choose a category to see its specifications.</p>
+      </div>
+    </div>
+
+    <%# ---------- 4. Title & description ---------- %>
+    <div class="panel">
+      <h2>4. Title &amp; description</h2>
+      <label>Title
+        <input type="text" name="title" value="<%= values.title || '' %>" maxlength="100" placeholder="Leave empty to generate one, e.g. &quot;Samsung French Door Refrigerator, 790 L&quot;">
+      </label>
+      <label>Description
+        <textarea name="description" rows="5" maxlength="2000" placeholder="Age, reason for selling, any scratches or issues, pickup/delivery details…"><%= values.description || '' %></textarea>
+      </label>
+    </div>
+
+    <%# ---------- 5. Photos: LAST on purpose (see middleware/upload.js) ---------- %>
+    <div class="panel">
+      <h2>5. Photos</h2>
+
+      <% if (existingPhotos.length > 0) { %>
+        <p class="muted">Current photos: tick any you want to remove.</p>
+        <div class="photo-previews">
+          <% existingPhotos.forEach(function (id) { %>
+            <label class="photo-existing">
+              <img src="/photos/<%= id %>" alt="Listing photo">
+              <span><input type="checkbox" name="removePhotos" value="<%= id %>"> Remove</span>
+            </label>
+          <% }) %>
+        </div>
+      <% } %>
+
+      <label><%= mode === 'create' ? 'Add photos *' : 'Add more photos' %>
+        <input type="file" name="photos" accept="image/jpeg,image/png,image/webp" multiple
+               data-max="<%= maxPhotos %>" data-max-bytes="<%= maxPhotoBytes %>">
+        <small class="muted">Up to <%= maxPhotos %> photos, JPEG/PNG/WebP, max <%= maxPhotoMb %> MB each. The first photo is the cover.</small>
+      </label>
+      <div class="photo-previews" id="photo-previews"></div>
+      <p class="photo-warning" id="photo-warning" role="alert"></p>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn"><%= mode === 'create' ? 'Publish listing' : 'Save changes' %></button>
+      <a href="<%= mode === 'create' ? '/dashboard' : '/listings/' + listingId %>" class="btn btn-outline">Cancel</a>
+    </div>
+  </form>
+</section>
+
+<script src="/js/listing-form.js"></script>
+<%- include('../../partials/footer') %>

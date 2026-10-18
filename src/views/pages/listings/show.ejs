@@ -1,0 +1,131 @@
+<%#
+  pages/listings/show.ejs  -  one listing in detail
+  Data from listingController.show:
+    listing (seller populated), displaySpecs[] (from the factory product),
+    typeLabel, isOwner
+  The buttons shown depend on WHO is looking:
+    owner (seller)   -> edit / change status
+    buyer            -> message seller, purchase request, save, compare
+    visitor          -> log in to contact
+    another seller   -> view only (sellers don't buy)
+%>
+<%- include('../../partials/header') %>
+
+<% const user = locals.currentUser; %>
+<% const seller = listing.seller; %>
+
+<nav class="breadcrumb" aria-label="Breadcrumb">
+  <a href="/listings">Browse</a> ›
+  <a href="/listings?category=<%= listing.category %>"><%= categoryLabel(listing.category) %></a> ›
+  <span><%= listing.title %></span>
+</nav>
+
+<div class="listing-detail">
+  <%# ================= Left: photo gallery ================= %>
+  <section class="gallery" data-gallery>
+    <div class="gallery-main">
+      <% if (listing.photos.length > 0) { %>
+        <img src="/photos/<%= listing.photos[0] %>" alt="<%= listing.title %>" data-gallery-main>
+      <% } else { %>
+        <% const fallback = categoryImage(listing.category); %>
+        <% if (fallback) { %>
+          <img src="<%= fallback %>" alt="" class="thumb-fallback">
+        <% } else { %>
+          <span class="thumb-placeholder big" aria-hidden="true"><%= categoryIcon(listing.category) %></span>
+        <% } %>
+      <% } %>
+    </div>
+    <% if (listing.photos.length > 1) { %>
+      <div class="gallery-thumbs">
+        <% listing.photos.forEach(function (id, i) { %>
+          <button type="button" class="gallery-thumb <%= i === 0 ? 'active' : '' %>" data-src="/photos/<%= id %>" aria-label="Show photo <%= i + 1 %>">
+            <img src="/photos/<%= id %>" alt="" loading="lazy">
+          </button>
+        <% }) %>
+      </div>
+    <% } %>
+  </section>
+
+  <%# ================= Right: key info + actions ================= %>
+  <section class="detail-info">
+    <h1><%= listing.title %></h1>
+    <p class="detail-price"><%= formatPrice(listing.price) %></p>
+    <p>
+      <span class="badge badge-condition"><%= listing.condition %></span>
+      <span class="badge status-badge status-<%= listing.status %>"><%= listing.status %></span>
+    </p>
+    <p class="muted">📍 <%= listing.city %> · Listed <%= formatDate(listing.createdAt) %> · 👁 <%= listing.views %> views</p>
+
+    <div class="detail-actions">
+      <% if (isOwner) { %>
+        <%# ---- The seller looking at their own listing ---- %>
+        <a href="/listings/<%= listing._id %>/edit" class="btn">Edit listing</a>
+        <form action="/listings/<%= listing._id %>/status" method="POST" class="status-form">
+          <input type="hidden" name="from" value="show">
+          <label class="sr-only" for="status-select">Status</label>
+          <select name="status" id="status-select" data-autosubmit>
+            <% ['available', 'pending', 'sold'].forEach(function (s) { %>
+              <option value="<%= s %>" <%= listing.status === s ? 'selected' : '' %>>Mark as <%= s %></option>
+            <% }) %>
+          </select>
+          <noscript><button type="submit" class="btn btn-small">Update</button></noscript>
+        </form>
+      <% } else if (user && user.isBuyer) { %>
+        <%# ---- A buyer ---- %>
+        <% if (listing.status === 'available') { %>
+          <a href="/requests/new?listing=<%= listing._id %>" class="btn">Send purchase request</a>
+        <% } %>
+        <a href="/messages/new?listing=<%= listing._id %>" class="btn btn-outline">💬 Message seller</a>
+        <form action="/favorites/<%= listing._id %>" method="POST" class="inline-form">
+          <button type="submit" class="btn btn-outline <%= isFavorite ? 'is-saved' : '' %>"><%= isFavorite ? '♥ Saved' : '♡ Save' %></button>
+        </form>
+        <form action="/compare/<%= listing._id %>" method="POST" class="inline-form">
+          <button type="submit" class="btn btn-outline">⚖️ Compare</button>
+        </form>
+      <% } else if (!user) { %>
+        <%# ---- A visitor ---- %>
+        <a href="/login" class="btn">Log in to contact the seller</a>
+      <% } %>
+    </div>
+
+    <%# ---- Seller card ---- %>
+    <a class="seller-card" href="/users/<%= seller._id %>">
+      <div class="avatar" aria-hidden="true"><%= seller.name.charAt(0).toUpperCase() %></div>
+      <div>
+        <strong><%= seller.name %></strong>
+        <div class="muted small">
+          <% if (seller.ratingCount > 0) { %>
+            <span class="stars">★</span> <%= seller.ratingAverage.toFixed(1) %> (<%= seller.ratingCount %>) ·
+          <% } %>
+          Member since <%= new Date(seller.createdAt).getFullYear() %>
+        </div>
+      </div>
+    </a>
+  </section>
+</div>
+
+<%# ================= Specifications (from the factory product) ================= %>
+<section class="section detail-columns">
+  <div class="panel">
+    <h2>Specifications</h2>
+    <table class="spec-table">
+      <tr><th>Type</th><td><%= typeLabel %></td></tr>
+      <tr><th>Brand</th><td><%= listing.brand %></td></tr>
+      <% if (listing.model) { %><tr><th>Model</th><td><%= listing.model %></td></tr><% } %>
+      <tr><th>Condition</th><td><%= listing.condition %></td></tr>
+      <% displaySpecs.forEach(function (s) { %>
+        <tr><th><%= s.label %></th><td><%= s.value %></td></tr>
+      <% }) %>
+    </table>
+  </div>
+  <div class="panel">
+    <h2>Description</h2>
+    <% if (listing.description) { %>
+      <p class="pre-line"><%= listing.description %></p>
+    <% } else { %>
+      <p class="muted">The seller didn't add a description.</p>
+    <% } %>
+  </div>
+</section>
+
+<%- include('../../partials/footer') %>

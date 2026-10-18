@@ -1,0 +1,79 @@
+<%#
+  pages/listings/mine.ejs  -  seller's listing manager ("Manage multiple listings")
+  Data from listingController.mine: listings[], counts{}, activeStatus, statuses[]
+%>
+<%- include('../../partials/header') %>
+
+<section>
+  <div class="page-head">
+    <h1>My listings</h1>
+    <a href="/listings/new" class="btn">+ New listing</a>
+  </div>
+
+  <%# Status filter tabs with counts %>
+  <nav class="chips" aria-label="Filter by status">
+    <a href="/listings/mine" class="chip <%= activeStatus === 'all' ? 'active' : '' %>">All (<%= counts.all %>)</a>
+    <% statuses.forEach(function (s) { %>
+      <a href="/listings/mine?status=<%= s %>" class="chip <%= activeStatus === s ? 'active' : '' %>"><%= s.charAt(0).toUpperCase() + s.slice(1) %> (<%= counts[s] %>)</a>
+    <% }) %>
+  </nav>
+
+  <% if (listings.length === 0) { %>
+    <p class="empty-state">
+      <% if (counts.all === 0) { %>
+        You haven't listed anything yet. <a href="/listings/new">Create your first listing</a>.
+      <% } else { %>
+        No listings with this status.
+      <% } %>
+    </p>
+  <% } else { %>
+    <div class="table-wrap">
+      <table class="manage-table">
+        <thead>
+          <tr><th>Item</th><th>Price</th><th>Views</th><th>Status</th><th><span class="sr-only">Actions</span></th></tr>
+        </thead>
+        <tbody>
+          <% listings.forEach(function (l) { %>
+            <tr>
+              <td>
+                <a href="/listings/<%= l._id %>" class="manage-item">
+                  <% if (l.photos.length) { %>
+                    <img src="/photos/<%= l.photos[0] %>" alt="" loading="lazy">
+                  <% } else { %>
+                    <span class="thumb-placeholder small"><%= categoryIcon(l.category) %></span>
+                  <% } %>
+                  <span>
+                    <strong><%= l.title %></strong>
+                    <small class="muted">Listed <%= formatDate(l.createdAt) %></small>
+                  </span>
+                </a>
+              </td>
+              <td><%= formatPrice(l.price) %></td>
+              <td><%= l.views %></td>
+              <td>
+                <%# Changing the dropdown submits the form automatically (main.js) %>
+                <form action="/listings/<%= l._id %>/status" method="POST">
+                  <select name="status" data-autosubmit aria-label="Status of <%= l.title %>" class="status-select status-<%= l.status %>">
+                    <% statuses.forEach(function (s) { %>
+                      <option value="<%= s %>" <%= l.status === s ? 'selected' : '' %>><%= s %></option>
+                    <% }) %>
+                  </select>
+                  <noscript><button type="submit" class="btn btn-small">Save</button></noscript>
+                </form>
+              </td>
+              <td class="row-actions">
+                <a href="/listings/<%= l._id %>/edit" class="btn btn-small btn-outline">Edit</a>
+                <form action="/listings/<%= l._id %>/delete" method="POST" class="inline-form"
+                      data-confirm="Remove &quot;<%= l.title %>&quot; from the marketplace?">
+                  <button type="submit" class="btn btn-small btn-danger">Remove</button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>
+
+<%- include('../../partials/footer') %>

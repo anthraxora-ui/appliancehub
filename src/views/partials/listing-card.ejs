@@ -1,0 +1,28 @@
+<%#
+  partials/listing-card.ejs  -  one listing in a grid
+  Used by: home, browse, seller profile (and favorites/search later).
+  Include with:  include('../partials/listing-card', { listing: l })
+%>
+<a class="listing-card" href="/listings/<%= listing._id %>">
+  <div class="listing-thumb">
+    <% if (listing.photos && listing.photos.length > 0) { %>
+      <%# loading="lazy": the browser only downloads images that scroll into view %>
+      <img src="/photos/<%= listing.photos[0] %>" alt="<%= listing.title %>" loading="lazy">
+    <% } else { %>
+      <% const fallback = categoryImage(listing.category); %>
+      <% if (fallback) { %>
+        <img src="<%= fallback %>" alt="" class="thumb-fallback" loading="lazy">
+      <% } else { %>
+        <span class="thumb-placeholder" aria-hidden="true"><%= categoryIcon(listing.category) %></span>
+      <% } %>
+    <% } %>
+    <% if (listing.status !== 'available') { %>
+      <span class="status-ribbon status-<%= listing.status %>"><%= listing.status %></span>
+    <% } %>
+  </div>
+  <div class="listing-body">
+    <strong class="listing-price"><%= formatPrice(listing.price) %></strong>
+    <span class="listing-title"><%= listing.title %></span>
+    <span class="listing-meta"><%= listing.condition %> · 📍 <%= listing.city %></span>
+  </div>
+</a>
