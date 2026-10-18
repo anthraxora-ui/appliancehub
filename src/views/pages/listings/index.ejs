@@ -1,0 +1,121 @@
+<%#
+  pages/listings/index.ejs  -  SEARCH page (filters on the left, results on the right)
+  Data from searchController.index:
+    listings[], total, totalPages, filters{}, notices[], elapsedMs,
+    categories[], conditions[], brands[], sorts{}, urlWith(fn), hasFilters
+  The filter form uses GET, so every search has its own shareable URL.
+%>
+<%- include('../../partials/header') %>
+
+<div class="search-layout">
+  <%# ================= Filters ================= %>
+  <aside class="filters panel" aria-label="Search filters">
+    <form action="/listings" method="GET" class="form" id="filter-form">
+      <label>Keyword
+        <input type="search" name="q" value="<%= filters.q %>" placeholder="e.g. Samsung, French door" maxlength="100">
+      </label>
+
+      <label>Category
+        <select name="category">
+          <option value="">All categories</option>
+          <% categories.forEach(function (c) { %>
+            <option value="<%= c.key %>" <%= filters.category === c.key ? 'selected' : '' %>><%= c.label %></option>
+          <% }) %>
+        </select>
+      </label>
+
+      <label>Brand
+        <select name="brand">
+          <option value="">All brands</option>
+          <% brands.forEach(function (b) { %>
+            <option value="<%= b %>" <%= filters.brand.toLowerCase() === b.toLowerCase() ? 'selected' : '' %>><%= b %></option>
+          <% }) %>
+        </select>
+      </label>
+
+      <fieldset class="price-range">
+        <legend>Price (CAD)</legend>
+        <%# type=text (not number) so we can show how the SERVER handles bad input %>
+        <input type="text" inputmode="decimal" name="minPrice" value="<%= filters.minPrice !== null ? filters.minPrice : '' %>" placeholder="Min" aria-label="Minimum price">
+        <span>–</span>
+        <input type="text" inputmode="decimal" name="maxPrice" value="<%= filters.maxPrice !== null ? filters.maxPrice : '' %>" placeholder="Max" aria-label="Maximum price">
+      </fieldset>
+
+      <fieldset class="checks">
+        <legend>Condition</legend>
+        <% conditions.forEach(function (c) { %>
+          <label class="check"><input type="checkbox" name="condition" value="<%= c %>" <%= filters.condition.includes(c) ? 'checked' : '' %>> <%= c %></label>
+        <% }) %>
+      </fieldset>
+
+      <label>City
+        <input type="text" name="city" value="<%= filters.city %>" placeholder="e.g. Regina" maxlength="60">
+      </label>
+
+      <input type="hidden" name="sort" value="<%= filters.sort %>">
+      <button type="submit" class="btn btn-block">Apply filters</button>
+      <% if (hasFilters) { %><a href="/listings" class="clear-link">Clear all filters</a><% } %>
+    </form>
+  </aside>
+
+  <%# ================= Results ================= %>
+  <section class="results">
+    <div class="page-head">
+      <div>
+        <h1><%= title %></h1>
+        <%# Server-measured database time: used as time-efficiency evidence %>
+        <p class="muted small" id="result-stats">Found <strong><%= total %></strong> appliance<%= total === 1 ? '' : 's' %> in <%= elapsedMs %> ms</p>
+      </div>
+      <form action="/listings" method="GET" class="sort-form">
+        <%# Keep current filters when changing the sort order %>
+        <% ['q', 'category', 'brand', 'city'].forEach(function (k) { if (filters[k]) { %>
+          <input type="hidden" name="<%= k %>" value="<%= filters[k] %>">
+        <% } }) %>
+        <% if (filters.minPrice !== null) { %><input type="hidden" name="minPrice" value="<%= filters.minPrice %>"><% } %>
+        <% if (filters.maxPrice !== null) { %><input type="hidden" name="maxPrice" value="<%= filters.maxPrice %>"><% } %>
+        <% filters.condition.forEach(function (c) { %><input type="hidden" name="condition" value="<%= c %>"><% }) %>
+        <label class="sr-only" for="sort">Sort by</label>
+        <select name="sort" id="sort" data-autosubmit>
+          <% Object.keys(sorts).forEach(function (k) { %>
+            <option value="<%= k %>" <%= filters.sort === k ? 'selected' : '' %>><%= sorts[k].label %></option>
+          <% }) %>
+        </select>
+      </form>
+    </div>
+
+    <%# Robustness notices: what we corrected in the buyer's input %>
+    <% notices.forEach(function (n) { %>
+      <div class="alert alert-info" role="status"><%= n %></div>
+    <% }) %>
+
+    <% if (listings.length === 0) { %>
+      <div class="empty-state">
+        <p>No appliances match your search.</p>
+        <% if (hasFilters) { %><a href="/listings" class="btn btn-outline btn-small">Clear filters</a><% } %>
+      </div>
+    <% } else { %>
+      <div class="listing-grid">
+        <% listings.forEach(function (l) { %>
+          <%- include('../../partials/listing-card', { listing: l }) %>
+        <% }) %>
+      </div>
+
+      <%# ---------- Pagination ---------- %>
+      <% if (totalPages > 1) { %>
+        <nav class="pagination" aria-label="Pages">
+          <% if (filters.page > 1) { %><a href="<%= urlWith({ page: filters.page - 1 }) %>">‹ Prev</a><% } %>
+          <% for (let p = 1; p <= totalPages; p++) { %>
+            <% if (p === filters.page) { %>
+              <span class="current" aria-current="page"><%= p %></span>
+            <% } else { %>
+              <a href="<%= urlWith({ page: p }) %>"><%= p %></a>
+            <% } %>
+          <% } %>
+          <% if (filters.page < totalPages) { %><a href="<%= urlWith({ page: filters.page + 1 }) %>">Next ›</a><% } %>
+        </nav>
+      <% } %>
+    <% } %>
+  </section>
+</div>
+
+<%- include('../../partials/footer') %>
