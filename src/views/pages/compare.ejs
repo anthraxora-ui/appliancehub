@@ -1,0 +1,78 @@
+<%#
+  pages/compare.ejs  -  side-by-side comparison (max 3)
+  Data from compareController.show:
+    columns[] { listing, typeLabel, specs{label: value} }, specLabels[], lowestPrice, maxCompare
+%>
+<%- include('../partials/header') %>
+
+<section>
+  <div class="page-head">
+    <h1>Compare appliances</h1>
+    <% if (columns.length > 0) { %>
+      <form action="/compare/clear" method="POST"><button type="submit" class="btn btn-outline btn-small">Clear all</button></form>
+    <% } %>
+  </div>
+
+  <% if (columns.length === 0) { %>
+    <p class="empty-state">Nothing to compare yet. Open a listing and press <strong>⚖️ Compare</strong> (up to <%= maxCompare %>).
+      <br><a href="/listings">Browse appliances</a></p>
+  <% } else { %>
+    <% if (columns.length < maxCompare) { %>
+      <p class="muted">You can add <%= maxCompare - columns.length %> more. <a href="/listings">Browse appliances</a></p>
+    <% } %>
+
+    <div class="table-wrap">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th scope="col"><span class="sr-only">Feature</span></th>
+            <% columns.forEach(function (c) { %>
+              <th scope="col">
+                <a href="/listings/<%= c.listing._id %>" class="compare-head">
+                  <% if (c.listing.photos.length) { %>
+                    <img src="/photos/<%= c.listing.photos[0] %>" alt="">
+                  <% } else { %>
+                    <span class="thumb-placeholder"><%= categoryIcon(c.listing.category) %></span>
+                  <% } %>
+                  <span><%= c.listing.title %></span>
+                </a>
+                <form action="/compare/<%= c.listing._id %>/remove" method="POST">
+                  <button type="submit" class="link-button">Remove</button>
+                </form>
+              </th>
+            <% }) %>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">Price</th>
+            <% columns.forEach(function (c) { %>
+              <td class="<%= c.listing.price === lowestPrice ? 'best' : '' %>">
+                <strong><%= formatPrice(c.listing.price) %></strong>
+                <% if (c.listing.price === lowestPrice) { %><span class="best-tag">Lowest</span><% } %>
+              </td>
+            <% }) %>
+          </tr>
+          <tr><th scope="row">Type</th><% columns.forEach(function (c) { %><td><%= c.typeLabel %></td><% }) %></tr>
+          <tr><th scope="row">Brand</th><% columns.forEach(function (c) { %><td><%= c.listing.brand %></td><% }) %></tr>
+          <tr><th scope="row">Model</th><% columns.forEach(function (c) { %><td><%= c.listing.model || '—' %></td><% }) %></tr>
+          <tr><th scope="row">Condition</th><% columns.forEach(function (c) { %><td><%= c.listing.condition %></td><% }) %></tr>
+          <tr><th scope="row">Status</th><% columns.forEach(function (c) { %><td class="status-cell"><%= c.listing.status %></td><% }) %></tr>
+          <tr><th scope="row">City</th><% columns.forEach(function (c) { %><td><%= c.listing.city %></td><% }) %></tr>
+          <tr><th scope="row">Seller</th><% columns.forEach(function (c) { %>
+            <td><a href="/users/<%= c.listing.seller._id %>"><%= c.listing.seller.name %></a>
+              <% if (c.listing.seller.ratingCount > 0) { %><span class="muted small">★ <%= c.listing.seller.ratingAverage.toFixed(1) %></span><% } %></td>
+          <% }) %></tr>
+          <%# Category-specific rows: produced by the Simple Factory products %>
+          <% specLabels.forEach(function (label) { %>
+            <tr><th scope="row"><%= label %></th>
+              <% columns.forEach(function (c) { %><td><%= c.specs[label] || '—' %></td><% }) %>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>
+
+<%- include('../partials/footer') %>

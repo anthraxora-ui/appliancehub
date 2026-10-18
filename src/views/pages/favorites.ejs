@@ -1,0 +1,29 @@
+<%#
+  pages/favorites.ejs  -  the buyer's saved listings
+  Data from favoriteController.list: favorites[]
+%>
+<%- include('../partials/header') %>
+
+<section>
+  <h1>Favorites</h1>
+
+  <% if (favorites.length === 0) { %>
+    <p class="empty-state">You haven't saved anything yet. Tap <strong>♡ Save</strong> on a listing to keep it here.
+      <br><a href="/listings">Browse appliances</a></p>
+  <% } else { %>
+    <p class="muted"><%= favorites.length %> saved item<%= favorites.length === 1 ? '' : 's' %></p>
+    <div class="listing-grid">
+      <% favorites.forEach(function (l) { %>
+        <div class="card-with-action">
+          <%- include('../partials/listing-card', { listing: l }) %>
+          <form action="/favorites/<%= l._id %>" method="POST">
+            <input type="hidden" name="from" value="favorites">
+            <button type="submit" class="link-button">Remove from favorites</button>
+          </form>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+</section>
+
+<%- include('../partials/footer') %>
