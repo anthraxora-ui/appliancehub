@@ -1,0 +1,80 @@
+<%#
+  pages/dashboard.ejs
+  One page, two layouts: the shortcuts depend on the user's ROLE.
+  Data from profileController.showDashboard: user
+  Shortcut links point to features built in later steps.
+%>
+<%- include('../partials/header') %>
+
+<section class="dash-header">
+  <div class="avatar avatar-lg" aria-hidden="true"><%= user.name.charAt(0).toUpperCase() %></div>
+  <div>
+    <h1>Hi, <%= user.name %></h1>
+    <span class="badge badge-<%= user.role %>"><%= user.isSeller ? 'Seller account' : 'Buyer account' %></span>
+    <% if (user.city) { %><span class="muted"> · 📍 <%= user.city %></span><% } %>
+  </div>
+  <div class="dash-actions">
+    <a href="/profile/edit" class="btn btn-outline btn-small">Edit profile</a>
+    <a href="/users/<%= user._id %>" class="btn btn-outline btn-small">View public profile</a>
+  </div>
+</section>
+
+<% if (user.isSeller) { %>
+  <%# ================= SELLER DASHBOARD ================= %>
+  <div class="dash-grid">
+    <a class="dash-card dash-card-primary" href="/listings/new">
+      <span class="dash-icon">➕</span><strong>Create a listing</strong>
+      <small>Add photos, brand, model, condition and price</small>
+    </a>
+    <a class="dash-card" href="/listings/mine">
+      <span class="dash-icon">📦</span><strong>My listings</strong>
+      <small>Edit, mark as sold or remove</small>
+    </a>
+    <a class="dash-card" href="/requests/received">
+      <span class="dash-icon">📥</span><strong>Purchase requests</strong>
+      <small>Accept or reject buyer requests</small>
+    </a>
+    <a class="dash-card" href="/messages">
+      <span class="dash-icon">💬</span><strong>Messages</strong>
+      <small>Answer buyer questions</small>
+    </a>
+    <a class="dash-card" href="/requests/sales">
+      <span class="dash-icon">📈</span><strong>Sales history</strong>
+      <small>Your previous sales</small>
+    </a>
+    <a class="dash-card" href="/users/<%= user._id %>#reviews">
+      <span class="dash-icon">⭐</span><strong>My reviews</strong>
+      <small><%= user.ratingCount > 0 ? user.ratingAverage.toFixed(1) + ' / 5 from ' + user.ratingCount + ' reviews' : 'No reviews yet' %></small>
+    </a>
+  </div>
+<% } else { %>
+  <%# ================= BUYER DASHBOARD ================= %>
+  <div class="dash-grid">
+    <a class="dash-card dash-card-primary" href="/listings">
+      <span class="dash-icon">🔍</span><strong>Browse appliances</strong>
+      <small>Search by category, brand, price, condition, city</small>
+    </a>
+    <a class="dash-card" href="/favorites">
+      <span class="dash-icon">❤️</span><strong>Favorites</strong>
+      <small>Items you saved for later</small>
+    </a>
+    <a class="dash-card" href="/compare">
+      <span class="dash-icon">⚖️</span><strong>Compare</strong>
+      <small>Appliances side by side</small>
+    </a>
+    <a class="dash-card" href="/requests/sent">
+      <span class="dash-icon">📤</span><strong>My purchase requests</strong>
+      <small>Track pending, accepted and rejected requests</small>
+    </a>
+    <a class="dash-card" href="/messages">
+      <span class="dash-icon">💬</span><strong>Messages</strong>
+      <small>Talk to sellers</small>
+    </a>
+    <a class="dash-card" href="/requests/purchases">
+      <span class="dash-icon">🧾</span><strong>Purchase history</strong>
+      <small>Previous purchases and reviews</small>
+    </a>
+  </div>
+<% } %>
+
+<%- include('../partials/footer') %>
