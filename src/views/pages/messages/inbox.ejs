@@ -1,0 +1,41 @@
+<%#
+  pages/messages/inbox.ejs  -  list of conversations
+  Data from messageController.inbox: rows[] (conversation + other + unread)
+%>
+<%- include('../../partials/header') %>
+
+<section class="section narrow">
+  <h1>Messages</h1>
+
+  <% if (rows.length === 0) { %>
+    <p class="empty-state">
+      No conversations yet.
+      <% if (currentUser.isBuyer) { %>Open a listing and press <strong>💬 Message seller</strong> to ask a question.<% } else { %>Buyers' questions about your listings will appear here.<% } %>
+    </p>
+  <% } else { %>
+    <ul class="inbox">
+      <% rows.forEach(function (c) { %>
+        <li>
+          <a href="/messages/<%= c._id %>" class="inbox-row <%= c.unread > 0 ? 'unread' : '' %>">
+            <% if (c.listing && c.listing.photos && c.listing.photos.length) { %>
+              <img src="/photos/<%= c.listing.photos[0] %>" alt="" class="inbox-thumb">
+            <% } else { %>
+              <span class="thumb-placeholder small"><%= c.listing ? categoryIcon(c.listing.category) : '🔌' %></span>
+            <% } %>
+            <span class="inbox-main">
+              <span class="inbox-top">
+                <strong><%= c.other.name %></strong>
+                <small class="muted"><%= formatDate(c.lastMessageAt) %></small>
+              </span>
+              <span class="inbox-listing"><%= c.listing ? c.listing.title : 'Listing' %></span>
+              <span class="inbox-preview muted"><%= c.lastMessagePreview %></span>
+            </span>
+            <% if (c.unread > 0) { %><span class="nav-badge"><%= c.unread %></span><% } %>
+          </a>
+        </li>
+      <% }) %>
+    </ul>
+  <% } %>
+</section>
+
+<%- include('../../partials/footer') %>

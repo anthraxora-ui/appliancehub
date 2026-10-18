@@ -1,0 +1,57 @@
+<%#
+  pages/messages/thread.ejs  -  one conversation (chat)
+  Data from messageController.renderThread:
+    conversation (listing/buyer/seller populated), side ('buyer'|'seller'),
+    other (the other person), messages[], errors[], draft, maxLength
+  public/js/chat.js polls for new messages every 5 seconds.
+%>
+<%- include('../../partials/header') %>
+
+<% const listing = conversation.listing; %>
+<% const lastTime = messages.length ? messages[messages.length - 1].createdAt.toISOString() : new Date(0).toISOString(); %>
+
+<section class="section narrow chat">
+  <a href="/messages" class="muted small">‹ All messages</a>
+
+  <%# ---- Who and what this chat is about ---- %>
+  <div class="chat-head panel">
+    <a href="/listings/<%= listing._id %>" class="chat-listing">
+      <% if (listing.photos && listing.photos.length) { %>
+        <img src="/photos/<%= listing.photos[0] %>" alt="">
+      <% } else { %>
+        <span class="thumb-placeholder small"><%= categoryIcon(listing.category) %></span>
+      <% } %>
+      <span>
+        <strong><%= listing.title %></strong>
+        <span class="muted small"><%= formatPrice(listing.price) %> · <span class="status-cell"><%= listing.status %></span></span>
+      </span>
+    </a>
+    <span class="muted small">Chat with <a href="/users/<%= other._id %>"><%= other.name %></a> (<%= side === 'buyer' ? 'seller' : 'buyer' %>)</span>
+  </div>
+
+  <%# ---- Messages ---- %>
+  <div class="chat-messages" id="chat-messages"
+       data-poll-url="/messages/<%= conversation._id %>/poll" data-last="<%= lastTime %>">
+    <% if (messages.length === 0) { %>
+      <p class="muted chat-empty">No messages yet. Say hello!</p>
+    <% } %>
+    <% messages.forEach(function (m) { %>
+      <% const mine = String(m.sender) === String(currentUser._id); %>
+      <div class="bubble <%= mine ? 'mine' : 'theirs' %>">
+        <p class="pre-line"><%= m.body %></p>
+        <time datetime="<%= m.createdAt.toISOString() %>"><%= m.createdAt.toLocaleString('en-CA', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) %></time>
+      </div>
+    <% }) %>
+    <span id="latest"></span>
+  </div>
+
+  <%# ---- Reply box ---- %>
+  <form action="/messages/<%= conversation._id %>" method="POST" class="chat-form">
+    <label class="sr-only" for="chat-body">Message</label>
+    <textarea name="body" id="chat-body" rows="2" maxlength="<%= maxLength %>" placeholder="Write a message…" required><%= draft %></textarea>
+    <button type="submit" class="btn">Send</button>
+  </form>
+</section>
+
+<script src="/js/chat.js"></script>
+<%- include('../../partials/footer') %>

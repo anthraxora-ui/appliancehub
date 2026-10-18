@@ -1,0 +1,29 @@
+<%#
+  pages/messages/new.ejs  -  buyer writes the FIRST message about a listing
+  Data from messageController.showNew/start: listing (seller populated), errors[], draft, maxLength
+%>
+<%- include('../../partials/header') %>
+
+<section class="section narrow">
+  <h1>Message <%= listing.seller.name %></h1>
+
+  <div class="panel chat-listing-static">
+    <strong><%= listing.title %></strong>
+    <span class="muted"><%= formatPrice(listing.price) %> · 📍 <%= listing.city %></span>
+  </div>
+
+  <form action="/messages" method="POST" class="form">
+    <input type="hidden" name="listing" value="<%= listing._id %>">
+    <label>Your message
+      <textarea name="body" rows="5" maxlength="<%= maxLength %>" required
+                placeholder="Hi! Is this still available? Could I see it this weekend?"><%= draft %></textarea>
+      <small class="muted">Max <%= maxLength %> characters. Don't share passwords or payment details in chat.</small>
+    </label>
+    <div class="form-actions">
+      <button type="submit" class="btn">Send message</button>
+      <a href="/listings/<%= listing._id %>" class="btn btn-outline">Cancel</a>
+    </div>
+  </form>
+</section>
+
+<%- include('../../partials/footer') %>
