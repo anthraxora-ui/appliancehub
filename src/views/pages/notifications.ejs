@@ -1,0 +1,42 @@
+<%#
+  pages/notifications.ejs  -  everything the observers told this user
+  Data from notificationController.list: notifications[]
+%>
+<%- include('../partials/header') %>
+
+<% const icons = {
+  'request.created': '📥', 'request.accepted': '✅', 'request.rejected': '✖', 'request.cancelled': '↩',
+  'request.completed': '🎉', 'message.sent': '💬', 'listing.statusChanged': '❤️', 'review.created': '⭐'
+}; %>
+
+<section class="section narrow">
+  <div class="page-head">
+    <h1>Notifications</h1>
+    <% if (notifications.some(function (n) { return !n.read; })) { %>
+      <form action="/notifications/read-all" method="POST">
+        <button type="submit" class="btn btn-outline btn-small">Mark all as read</button>
+      </form>
+    <% } %>
+  </div>
+
+  <% if (notifications.length === 0) { %>
+    <p class="empty-state">You're all caught up. Updates about your requests, messages and saved items will appear here.</p>
+  <% } else { %>
+    <ul class="inbox">
+      <% notifications.forEach(function (n) { %>
+        <li>
+          <a href="/notifications/<%= n._id %>" class="inbox-row notif <%= n.read ? '' : 'unread' %>">
+            <span class="notif-icon" aria-hidden="true"><%= icons[n.type] || '🔔' %></span>
+            <span class="inbox-main">
+              <span><%= n.message %></span>
+              <small class="muted"><%= new Date(n.createdAt).toLocaleString('en-CA', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) %></small>
+            </span>
+            <% if (!n.read) { %><span class="unread-dot" aria-label="Unread"></span><% } %>
+          </a>
+        </li>
+      <% }) %>
+    </ul>
+  <% } %>
+</section>
+
+<%- include('../partials/footer') %>
