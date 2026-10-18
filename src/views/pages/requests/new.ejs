@@ -1,0 +1,40 @@
+<%#
+  pages/requests/new.ejs  -  buyer sends a purchase request
+  Data from requestController: listing (seller populated), values {offerPrice, message}, errors[]
+%>
+<%- include('../../partials/header') %>
+
+<section class="section narrow">
+  <h1>Send purchase request</h1>
+
+  <div class="panel request-summary">
+    <% if (listing.photos.length) { %>
+      <img src="/photos/<%= listing.photos[0] %>" alt="">
+    <% } else { %>
+      <span class="thumb-placeholder small"><%= categoryIcon(listing.category) %></span>
+    <% } %>
+    <div>
+      <strong><%= listing.title %></strong>
+      <div class="muted small">Asking price <strong><%= formatPrice(listing.price) %></strong> · Seller: <%= listing.seller.name %> · 📍 <%= listing.city %></div>
+    </div>
+  </div>
+
+  <form action="/requests" method="POST" class="form">
+    <input type="hidden" name="listing" value="<%= listing._id %>">
+    <label>Your offer (CAD) *
+      <%# type=text so the server-side validation can be demonstrated %>
+      <input type="text" inputmode="decimal" name="offerPrice" value="<%= values.offerPrice %>" required>
+      <small class="muted">Offer the asking price, or suggest a different one. The seller decides.</small>
+    </label>
+    <label>Message to the seller <span class="muted">(optional, max 500 characters)</span>
+      <textarea name="message" rows="4" maxlength="500" placeholder="When could I pick it up? Can you help load it?"><%= values.message %></textarea>
+    </label>
+    <p class="muted small">Sending a request doesn't charge you anything. Payment and pickup are arranged with the seller.</p>
+    <div class="form-actions">
+      <button type="submit" class="btn">Send request</button>
+      <a href="/listings/<%= listing._id %>" class="btn btn-outline">Cancel</a>
+    </div>
+  </form>
+</section>
+
+<%- include('../../partials/footer') %>

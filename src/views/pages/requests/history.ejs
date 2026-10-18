@@ -1,0 +1,55 @@
+<%#
+  pages/requests/history.ejs  -  previous purchases (buyer) / previous sales (seller)
+  Data from requestController.history: isBuyer, items[] (completed requests), total
+  Titles/prices come from the snapshot saved with the request, so they stay
+  correct even if the listing was edited or removed later.
+%>
+<%- include('../../partials/header') %>
+
+<section>
+  <div class="page-head">
+    <h1><%= title %></h1>
+    <a href="<%= isBuyer ? '/requests/sent' : '/requests/received' %>" class="btn btn-outline btn-small">
+      <%= isBuyer ? 'My requests' : 'Purchase requests' %>
+    </a>
+  </div>
+
+  <% if (items.length === 0) { %>
+    <p class="empty-state"><%= isBuyer ? 'No completed purchases yet.' : 'No completed sales yet.' %></p>
+  <% } else { %>
+    <div class="stat-row">
+      <div class="stat"><span class="stat-value"><%= items.length %></span><span class="muted"><%= isBuyer ? 'purchases' : 'sales' %></span></div>
+      <div class="stat"><span class="stat-value"><%= formatPrice(total) %></span><span class="muted"><%= isBuyer ? 'spent' : 'earned' %></span></div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="manage-table">
+        <thead>
+          <tr><th>Date</th><th>Item</th><th><%= isBuyer ? 'Seller' : 'Buyer' %></th><th>Price</th><th><%= isBuyer ? 'Your review' : 'Buyer review' %></th></tr>
+        </thead>
+        <tbody>
+          <% items.forEach(function (r) { %>
+            <% const person = isBuyer ? r.seller : r.buyer; %>
+            <tr>
+              <td><%= formatDate(r.completedAt) %></td>
+              <td><%= r.listingTitle %></td>
+              <td><a href="/users/<%= person._id %>"><%= person.name %></a></td>
+              <td><strong><%= formatPrice(r.offerPrice) %></strong></td>
+              <td>
+                <% if (reviewed[String(r._id)]) { %>
+                  <span class="stars" title="<%= reviewed[String(r._id)] %> out of 5"><%= '★'.repeat(reviewed[String(r._id)]) %><span class="stars-empty"><%= '★'.repeat(5 - reviewed[String(r._id)]) %></span></span>
+                <% } else if (isBuyer) { %>
+                  <a href="/reviews/new?request=<%= r._id %>" class="btn btn-small btn-outline">★ Review</a>
+                <% } else { %>
+                  <span class="muted small">Not reviewed yet</span>
+                <% } %>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>
+
+<%- include('../../partials/footer') %>

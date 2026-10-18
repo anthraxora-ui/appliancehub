@@ -1,0 +1,83 @@
+<%#
+  pages/requests/received.ejs  -  seller: accept / reject / complete requests
+  Data from requestController.received: requests[] (listing + buyer populated), counts{}, tab
+%>
+<%- include('../../partials/header') %>
+
+<section>
+  <div class="page-head">
+    <h1>Purchase requests</h1>
+    <a href="/requests/sales" class="btn btn-outline btn-small">Sales history</a>
+  </div>
+
+  <nav class="chips" aria-label="Filter requests">
+    <a href="/requests/received?status=pending" class="chip <%= tab === 'pending' ? 'active' : '' %>">Pending (<%= counts.pending %>)</a>
+    <a href="/requests/received?status=accepted" class="chip <%= tab === 'accepted' ? 'active' : '' %>">Accepted (<%= counts.accepted %>)</a>
+    <a href="/requests/received?status=all" class="chip <%= tab === 'all' ? 'active' : '' %>">All (<%= counts.all %>)</a>
+  </nav>
+
+  <% if (requests.length === 0) { %>
+    <p class="empty-state"><%= tab === 'pending' ? 'No requests waiting for your answer.' : 'Nothing here yet.' %></p>
+  <% } else { %>
+    <div class="request-list">
+      <% requests.forEach(function (r) { %>
+        <% const diff = Math.round((r.offerPrice - r.listingPrice) / r.listingPrice * 100); %>
+        <article class="request-card panel">
+          <% if (r.listing && r.listing.photos && r.listing.photos.length) { %>
+            <img src="/photos/<%= r.listing.photos[0] %>" alt="" class="request-thumb">
+          <% } else { %>
+            <span class="thumb-placeholder small"><%= r.listing ? categoryIcon(r.listing.category) : '🔌' %></span>
+          <% } %>
+
+          <div class="request-main">
+            <div class="request-top">
+              <a href="/listings/<%= r.listing ? r.listing._id : '' %>"><strong><%= r.listingTitle %></strong></a>
+              <%- include('../../partials/request-status', { status: r.status }) %>
+            </div>
+            <div class="small">
+              <a href="/users/<%= r.buyer._id %>"><strong><%= r.buyer.name %></strong></a>
+              <% if (r.buyer.city) { %><span class="muted">(<%= r.buyer.city %>)</span><% } %>
+              offers <strong><%= formatPrice(r.offerPrice) %></strong>
+              <% if (diff !== 0) { %>
+                <span class="<%= diff < 0 ? 'offer-low' : 'offer-high' %>"><%= diff > 0 ? '+' : '' %><%= diff %>% vs asking <%= formatPrice(r.listingPrice) %></span>
+              <% } else { %><span class="muted">(full asking price)</span><% } %>
+              <span class="muted">· <%= formatDate(r.createdAt) %></span>
+            </div>
+            <% if (r.message) { %><p class="request-note">“<%= r.message %>”</p><% } %>
+            <% if (r.sellerNote && r.status !== 'pending') { %><p class="muted small">Note: <%= r.sellerNote %></p><% } %>
+          </div>
+
+          <div class="request-actions">
+            <form action="/messages/from-request/<%= r._id %>" method="POST">
+              <button type="submit" class="btn btn-small btn-outline">💬 Message</button>
+            </form>
+
+            <% if (r.status === 'pending') { %>
+              <form action="/requests/<%= r._id %>/accept" method="POST"
+                    data-confirm="Accept this offer? The item will be reserved for <%= r.buyer.name %> and other pending requests will be declined.">
+                <button type="submit" class="btn btn-small">Accept</button>
+              </form>
+              <%# Reject with an optional reason (shown to the buyer) %>
+              <details class="reject-box">
+                <summary class="btn btn-small btn-danger">Reject</summary>
+                <form action="/requests/<%= r._id %>/reject" method="POST" class="form">
+                  <input type="text" name="note" maxlength="300" placeholder="Reason (optional)">
+                  <button type="submit" class="btn btn-small btn-danger">Confirm reject</button>
+                </form>
+              </details>
+            <% } else if (r.status === 'accepted') { %>
+              <form action="/requests/<%= r._id %>/complete" method="POST" data-confirm="Mark this sale as completed? The listing will be marked as sold.">
+                <button type="submit" class="btn btn-small">✔ Mark sale completed</button>
+              </form>
+              <form action="/requests/<%= r._id %>/release" method="POST" data-confirm="Cancel this deal? The item becomes available again.">
+                <button type="submit" class="btn btn-small btn-outline">Cancel deal</button>
+              </form>
+            <% } %>
+          </div>
+        </article>
+      <% }) %>
+    </div>
+  <% } %>
+</section>
+
+<%- include('../../partials/footer') %>

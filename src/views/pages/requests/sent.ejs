@@ -1,0 +1,64 @@
+<%#
+  pages/requests/sent.ejs  -  buyer: "Manage purchases"
+  Data from requestController.sent: requests[] (listing + seller populated)
+%>
+<%- include('../../partials/header') %>
+
+<section>
+  <div class="page-head">
+    <h1>My purchase requests</h1>
+    <a href="/requests/purchases" class="btn btn-outline btn-small">Purchase history</a>
+  </div>
+
+  <% if (requests.length === 0) { %>
+    <p class="empty-state">You haven't sent any purchase requests yet. <a href="/listings">Browse appliances</a></p>
+  <% } else { %>
+    <div class="request-list">
+      <% requests.forEach(function (r) { %>
+        <article class="request-card panel">
+          <% if (r.listing && r.listing.photos && r.listing.photos.length) { %>
+            <img src="/photos/<%= r.listing.photos[0] %>" alt="" class="request-thumb">
+          <% } else { %>
+            <span class="thumb-placeholder small"><%= r.listing ? categoryIcon(r.listing.category) : '🔌' %></span>
+          <% } %>
+
+          <div class="request-main">
+            <div class="request-top">
+              <a href="/listings/<%= r.listing ? r.listing._id : '' %>"><strong><%= r.listingTitle %></strong></a>
+              <%- include('../../partials/request-status', { status: r.status }) %>
+            </div>
+            <div class="muted small">
+              Your offer <strong><%= formatPrice(r.offerPrice) %></strong>
+              <% if (r.offerPrice !== r.listingPrice) { %>(asking <%= formatPrice(r.listingPrice) %>)<% } %>
+              · Seller <a href="/users/<%= r.seller._id %>"><%= r.seller.name %></a> · Sent <%= formatDate(r.createdAt) %>
+            </div>
+            <% if (r.sellerNote) { %><p class="request-note">Seller: “<%= r.sellerNote %>”</p><% } %>
+            <% if (r.status === 'accepted') { %>
+              <p class="request-note good">The seller accepted! Use Messages to arrange pickup and payment.</p>
+            <% } %>
+          </div>
+
+          <div class="request-actions">
+            <% if (r.listing) { %>
+              <a href="/messages/new?listing=<%= r.listing._id %>" class="btn btn-small btn-outline">💬 Message</a>
+            <% } %>
+            <% if (r.status === 'pending' || r.status === 'accepted') { %>
+              <form action="/requests/<%= r._id %>/cancel" method="POST" data-confirm="Cancel this purchase request?">
+                <button type="submit" class="btn btn-small btn-danger">Cancel</button>
+              </form>
+            <% } %>
+            <% if (r.status === 'completed') { %>
+              <% if (reviewed[String(r._id)]) { %>
+                <span class="reviewed-tag">Reviewed <span class="stars"><%= '★'.repeat(reviewed[String(r._id)]) %></span></span>
+              <% } else { %>
+                <a href="/reviews/new?request=<%= r._id %>" class="btn btn-small">★ Review seller</a>
+              <% } %>
+            <% } %>
+          </div>
+        </article>
+      <% }) %>
+    </div>
+  <% } %>
+</section>
+
+<%- include('../../partials/footer') %>

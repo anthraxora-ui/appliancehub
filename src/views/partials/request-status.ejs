@@ -1,0 +1,6 @@
+<%#
+  partials/request-status.ejs  -  coloured badge for a purchase request status
+  Include with: include('../../partials/request-status', { status: r.status })
+%>
+<% const labels = { pending: '⏳ Pending', accepted: '✅ Accepted', rejected: '✖ Rejected', cancelled: '↩ Cancelled', completed: '🎉 Completed' }; %>
+<span class="badge req-<%= status %>"><%= labels[status] || status %></span>
