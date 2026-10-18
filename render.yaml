@@ -1,0 +1,18 @@
+# render.yaml - Render "Blueprint": tells Render how to run ApplianceHub.
+# On Render: New + -> Blueprint -> pick this GitHub repo. Render reads this
+# file and creates the web service with these settings.
+services:
+  - type: web
+    name: appliancehub
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health        # Render restarts the app if this stops returning 200
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SESSION_SECRET
+        generateValue: true         # Render creates a long random secret for us
+      - key: MONGODB_URI
+        sync: false                 # you paste your Atlas connection string in the dashboard
