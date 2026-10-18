@@ -1,0 +1,120 @@
+<%#
+  pages/home.ejs - landing page
+  Data from homeController.showHome:  categories[], featured[]
+%>
+<%- include('../partials/header') %>
+
+<%# ---------- Hero with the main search bar ---------- %>
+<%# With public/images/hero.jpg the banner gets a darkened photo background %>
+<section class="hero <%= assets.hero ? 'hero-image' : '' %>"<% if (assets.hero) { %> style="background-image: linear-gradient(rgba(15, 23, 42, 0.55), rgba(15, 23, 42, 0.65)), url('<%= assets.hero %>');"<% } %>>
+  <h1>Find the right appliance.<br><span class="accent">Sell the one you don't need.</span></h1>
+  <p class="lead">New and used fridges, washers, ovens and more, from sellers near you.</p>
+
+  <%# Submits to the search page (GET so the URL can be shared/bookmarked) %>
+  <form action="/listings" method="GET" class="search-bar" role="search">
+    <input type="search" name="q" placeholder="Search e.g. &quot;Samsung fridge&quot;" aria-label="Search appliances">
+    <input type="text" name="city" placeholder="City" aria-label="City">
+    <button type="submit" class="btn">Search</button>
+  </form>
+</section>
+
+<%# ---------- Category grid (from src/config/categories.js) ---------- %>
+<section class="section">
+  <h2>Shop by category</h2>
+  <div class="category-grid">
+    <% categories.forEach(function (cat) { %>
+      <a class="category-card" href="/listings?category=<%= cat.key %>">
+        <% if (assets.categories[cat.key]) { %>
+          <img src="<%= assets.categories[cat.key] %>" alt="" class="category-img" loading="lazy">
+        <% } else { %>
+          <span class="category-icon" aria-hidden="true"><%= cat.icon %></span>
+        <% } %>
+        <span><%= cat.label %></span>
+      </a>
+    <% }) %>
+  </div>
+</section>
+
+<%# ---------- Newest listings (from the Listing model) ---------- %>
+<section class="section">
+  <div class="page-head">
+    <h2>Recently listed</h2>
+    <% if (featured.length > 0) { %><a href="/listings">See all →</a><% } %>
+  </div>
+  <% if (featured.length === 0) { %>
+    <p class="empty-state">No listings yet. Be the first to <a href="/register?role=seller">sell an appliance</a>!</p>
+  <% } else { %>
+    <div class="listing-grid">
+      <% featured.forEach(function (l) { %>
+        <%- include('../partials/listing-card', { listing: l }) %>
+      <% }) %>
+    </div>
+  <% } %>
+</section>
+
+<%# ---------- How it works: one card per user role (Buyer / Seller) ---------- %>
+<%# Each role is a list of 4 numbered steps + a button. Buttons adapt to who is logged in. %>
+<% const homeUser = locals.currentUser; %>
+<% const buyerSteps = [
+  ['Search & filter', 'By category, brand, price, condition and city.'],
+  ['Compare & save', 'Put appliances side by side and save your favorites.'],
+  ['Contact & request', 'Message the seller and send a purchase request.'],
+  ['Buy & review', 'Pick it up, then rate the seller to help others.']
+]; %>
+<% const sellerSteps = [
+  ['List your appliance', 'Add photos, brand, model, condition and price.'],
+  ['Manage everything', 'All your listings and their status in one place.'],
+  ['Answer buyers', 'Reply to messages and accept or reject requests.'],
+  ['Build your reputation', 'Complete sales and collect buyer reviews.']
+]; %>
+<section class="section how-it-works" id="how-it-works">
+  <div class="section-head">
+    <span class="eyebrow">How it works</span>
+    <h2>One marketplace, two simple journeys</h2>
+    <p>Replacing an old fridge or selling a washer you no longer need? It only takes a few steps.</p>
+  </div>
+
+  <div class="journeys">
+    <%# ---- Buyer ---- %>
+    <article class="journey journey-buyer">
+      <header class="journey-head">
+        <span class="journey-icon" aria-hidden="true">🛒</span>
+        <div>
+          <h3>For buyers</h3>
+          <p>Find the right appliance at the right price</p>
+        </div>
+      </header>
+      <ol class="steps">
+        <% buyerSteps.forEach(function (s, i) { %>
+          <li>
+            <span class="step-num"><%= i + 1 %></span>
+            <div><strong><%= s[0] %></strong><span><%= s[1] %></span></div>
+          </li>
+        <% }) %>
+      </ol>
+      <a href="/listings" class="btn btn-block">Start browsing</a>
+    </article>
+
+    <%# ---- Seller ---- %>
+    <article class="journey journey-seller">
+      <header class="journey-head">
+        <span class="journey-icon" aria-hidden="true">🏷️</span>
+        <div>
+          <h3>For sellers</h3>
+          <p>Turn appliances you don't need into cash</p>
+        </div>
+      </header>
+      <ol class="steps">
+        <% sellerSteps.forEach(function (s, i) { %>
+          <li>
+            <span class="step-num"><%= i + 1 %></span>
+            <div><strong><%= s[0] %></strong><span><%= s[1] %></span></div>
+          </li>
+        <% }) %>
+      </ol>
+      <a href="<%= homeUser && homeUser.isSeller ? '/listings/new' : '/register?role=seller' %>" class="btn btn-block btn-accent">Start selling</a>
+    </article>
+  </div>
+</section>
+
+<%- include('../partials/footer') %>

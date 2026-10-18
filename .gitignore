@@ -1,0 +1,19 @@
+# Dependencies (re-installed with `npm install`, never committed)
+node_modules/
+
+# Secrets - each member keeps their own .env (copy from .env.example)
+.env
+
+# Photos uploaded by sellers while testing locally
+public/uploads/
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+# Local editor configs
+.vscode/
+.idea/
+
+# Full-size design source assets (optimized versions in public/images)
+design/original-images/
+

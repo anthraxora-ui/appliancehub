@@ -1,0 +1,68 @@
+<%#
+  pages/about.ejs - project and team information (everything centred)
+  Data from homeController.showAbout:  team[]
+  Team photos come from public/images/team/<name>.jpg when present (see config/assets.js).
+%>
+<%- include('../partials/header') %>
+
+<div class="about">
+  <%# ---------- Intro ---------- %>
+  <section class="section-head about-intro">
+    <span class="eyebrow">About us</span>
+    <h1>About <%= appName %></h1>
+    <p>
+      <%= appName %> is a marketplace built only for home appliances. Sellers list new and used appliances;
+      buyers search, compare, message sellers and send purchase requests, all in one place.
+    </p>
+  </section>
+
+  <%# ---------- Team ---------- %>
+  <section class="section" id="team">
+    <div class="section-head">
+      <span class="eyebrow">The team</span>
+      <h2>Who built it</h2>
+      <p>CS 476 Software Development Project: four members, one marketplace.</p>
+    </div>
+    <div class="team-grid">
+      <% team.forEach(function (member) { %>
+        <div class="team-card">
+          <% const photo = assets.team[member.name.toLowerCase()]; %>
+          <% if (photo) { %>
+            <img src="<%= photo %>" alt="Photo of <%= member.name %>" class="team-photo">
+          <% } else { %>
+            <div class="avatar team-photo" aria-hidden="true"><%= member.name.charAt(0) %></div>
+          <% } %>
+          <strong class="team-name"><%= member.name %></strong>
+          <span class="team-role"><%= member.area %></span>
+        </div>
+      <% }) %>
+    </div>
+  </section>
+
+  <%# ---------- How it is built ---------- %>
+  <section class="section">
+    <div class="section-head">
+      <span class="eyebrow">Under the hood</span>
+      <h2>How it is built</h2>
+    </div>
+    <div class="tech-grid">
+      <div class="tech-card">
+        <span class="tech-icon" aria-hidden="true">🧱</span>
+        <h3>Architecture</h3>
+        <p>Model-View-Controller: Express routes &amp; controllers, Mongoose models and EJS views.</p>
+      </div>
+      <div class="tech-card">
+        <span class="tech-icon" aria-hidden="true">🧩</span>
+        <h3>Design patterns</h3>
+        <p>Simple Factory creates the right appliance type; Observer sends notifications.</p>
+      </div>
+      <div class="tech-card">
+        <span class="tech-icon" aria-hidden="true">⚙️</span>
+        <h3>Technology</h3>
+        <p>Node.js, Express, EJS and MongoDB Atlas, deployed on Render.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<%- include('../partials/footer') %>

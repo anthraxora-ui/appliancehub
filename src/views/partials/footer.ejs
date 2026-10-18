@@ -1,0 +1,105 @@
+<%#
+  partials/footer.ejs  -  shared bottom of every page
+  Closes the <main> opened in header.ejs, then the site footer:
+    brand + description | Marketplace | For buyers | For sellers | Project
+    ───────────────────────────────────────────────────────────────────────
+    © year ApplianceHub · CS 476 · team                      tech stack
+  Links that need an account send visitors to log in / sign up instead.
+%>
+<% const footUser = locals.currentUser; %>
+<% const asBuyer = function (path) { return footUser && footUser.isBuyer ? path : '/login'; }; %>
+<% const asSeller = function (path) { return footUser && footUser.isSeller ? path : '/register?role=seller'; }; %>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-grid">
+
+      <%# ---------- Brand ---------- %>
+      <div class="footer-brand">
+        <% const footImg = locals.assets || {}; %>
+        <a href="/" class="brand brand-light" aria-label="<%= appName %> home">
+          <% if (footImg.logoLight) { %>
+            <img src="<%= footImg.logoLight %>" alt="<%= appName %>" class="brand-logo">
+          <% } else if (footImg.logo) { %>
+            <%# Dark logo on a white pill so it stays visible on the dark footer %>
+            <span class="logo-pill"><img src="<%= footImg.logo %>" alt="<%= appName %>" class="brand-logo"></span>
+          <% } else { %>
+            <span class="brand-mark" aria-hidden="true">⚡</span> <%= appName %>
+          <% } %>
+        </a>
+        <p>The marketplace for new and used home appliances. Find a fridge, washer or oven near you, or sell the one you no longer need.</p>
+        <ul class="footer-badges">
+          <li><span aria-hidden="true">🔒</span> Secure accounts</li>
+          <li><span aria-hidden="true">💬</span> In-app messaging</li>
+          <li><span aria-hidden="true">⭐</span> Rated sellers</li>
+        </ul>
+      </div>
+
+      <%# ---------- Marketplace: categories ---------- %>
+      <nav class="footer-col" aria-label="Categories">
+        <h2>Marketplace</h2>
+        <ul>
+          <li><a href="/listings">All appliances</a></li>
+          <%# 4 popular categories, so every column has 5 links %>
+          <% ['refrigerator', 'washer', 'oven', 'air_conditioner'].forEach(function (key) { %>
+            <% const c = (locals.allCategories || []).find(function (cat) { return cat.key === key; }); %>
+            <% if (!c) return; %>
+            <li><a href="/listings?category=<%= c.key %>"><%= c.label %></a></li>
+          <% }) %>
+        </ul>
+      </nav>
+
+      <%# ---------- Buyers ---------- %>
+      <nav class="footer-col" aria-label="For buyers">
+        <h2>For buyers</h2>
+        <ul>
+          <li><a href="/listings">Search &amp; filter</a></li>
+          <li><a href="<%= asBuyer('/compare') %>">Compare appliances</a></li>
+          <li><a href="<%= asBuyer('/favorites') %>">Saved favorites</a></li>
+          <li><a href="<%= asBuyer('/requests/sent') %>">My purchase requests</a></li>
+          <li><a href="<%= asBuyer('/requests/purchases') %>">Purchase history</a></li>
+        </ul>
+      </nav>
+
+      <%# ---------- Sellers ---------- %>
+      <nav class="footer-col" aria-label="For sellers">
+        <h2>For sellers</h2>
+        <ul>
+          <li><a href="<%= asSeller('/listings/new') %>">Sell an appliance</a></li>
+          <li><a href="<%= asSeller('/listings/mine') %>">Manage listings</a></li>
+          <li><a href="<%= asSeller('/requests/received') %>">Purchase requests</a></li>
+          <li><a href="<%= asSeller('/requests/sales') %>">Sales history</a></li>
+          <li><a href="<%= asSeller('/dashboard') %>">Seller dashboard</a></li>
+        </ul>
+      </nav>
+
+      <%# ---------- Project ---------- %>
+      <nav class="footer-col" aria-label="Project">
+        <h2>Project</h2>
+        <ul>
+          <li><a href="/about">About us</a></li>
+          <li><a href="/about#team">Meet the team</a></li>
+          <li><a href="/#how-it-works">How it works</a></li>
+          <% if (!footUser) { %>
+            <li><a href="/register">Create an account</a></li>
+            <li><a href="/login">Log in</a></li>
+          <% } else { %>
+            <li><a href="/dashboard">Dashboard</a></li>
+            <li><a href="/notifications">Notifications</a></li>
+          <% } %>
+        </ul>
+      </nav>
+    </div>
+
+    <%# ---------- Bottom bar ---------- %>
+    <div class="footer-bottom">
+      <div class="container footer-bottom-inner">
+        <p>&copy; <%= new Date().getFullYear() %> <%= appName %> · CS 476 Software Development Project · Ilyan · Jaspreet · Anu · Jayant</p>
+        <p class="footer-tech">Built with Node.js, Express, EJS &amp; MongoDB</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/js/main.js"></script>
+</body>
+</html>

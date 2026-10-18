@@ -1,0 +1,19 @@
+<%#
+  partials/alerts.ejs
+  -------------------------------------------------------------
+  1. Flash messages from the previous request (middleware/flash.js)
+  2. Form validation errors passed directly by a controller as `errors`
+  role="alert" makes screen readers announce the message.
+%>
+<% (locals.flash || []).forEach(function (f) { %>
+  <div class="alert alert-<%= f.type %>" role="alert"><%= f.message %></div>
+<% }) %>
+
+<% if (locals.errors && errors.length > 0) { %>
+  <div class="alert alert-error" role="alert">
+    <strong>Please fix the following:</strong>
+    <ul>
+      <% errors.forEach(function (e) { %><li><%= e %></li><% }) %>
+    </ul>
+  </div>
+<% } %>

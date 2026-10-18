@@ -1,0 +1,145 @@
+<%#
+  partials/header.ejs
+  -------------------------------------------------------------
+  Shared top of every page: <head>, the site header, alert messages.
+  Pages include it with:  include('../partials/header')
+
+  Header layout (desktop):
+    [⚡ ApplianceHub]  [🔍 search appliances…]   Browse  Requests  + Sell  💬  🔔  [Avatar ▾]
+  On phones the links fold into the ☰ menu and the search moves under the logo.
+
+  Optional values are read through `locals.` so the page still renders
+  when one is missing (e.g. an error page shown before login was loaded).
+%>
+<% const user = locals.currentUser; %>
+<%# "Browse" is active on /listings pages, except the seller's own pages %>
+<% const browsing = currentPath.startsWith('/listings') && currentPath !== '/listings/new' && currentPath !== '/listings/mine'; %>
+<%# The home page has its own big search box, so the header search is hidden there %>
+<% const showHeaderSearch = currentPath !== '/'; %>
+<%# Optional brand images (null when not present) %>
+<% const img = locals.assets || { categories: {}, team: {} }; %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> | <%= appName %></title>
+  <meta name="description" content="Buy and sell new and used home appliances near you.">
+  <%# Site icon: your favicon file if added, otherwise an inline SVG lightning bolt %>
+  <% if (img.favicon) { %>
+    <link rel="icon" href="<%= img.favicon %>">
+  <% } else { %>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <% } %>
+  <% if (img.appleTouchIcon) { %><link rel="apple-touch-icon" href="<%= img.appleTouchIcon %>"><% } %>
+  <%# Picture shown when the site link is shared (WhatsApp, Teams, Discord...) %>
+  <meta property="og:title" content="<%= title %> | <%= appName %>">
+  <meta property="og:description" content="Buy and sell new and used home appliances near you.">
+  <% if (img.ogImage) { %><meta property="og:image" content="<%= img.ogImage %>"><% } %>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <%# Keyboard users can jump straight past the navigation %>
+  <a href="#main" class="skip-link">Skip to content</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+
+      <%# ---------- Logo ---------- %>
+      <a href="/" class="brand" aria-label="<%= appName %> home">
+        <% if (img.logo) { %>
+          <img src="<%= img.logo %>" alt="<%= appName %>" class="brand-logo">
+        <% } else { %>
+          <span class="brand-mark" aria-hidden="true">⚡</span>
+          <span class="brand-name"><%= appName %></span>
+        <% } %>
+      </a>
+
+      <%# ---------- Search (GET /listings, same as the search page) ---------- %>
+      <% if (showHeaderSearch) { %>
+        <form action="/listings" method="GET" class="header-search" role="search">
+          <label for="header-q" class="sr-only">Search appliances</label>
+          <input type="search" id="header-q" name="q" placeholder="Search fridges, washers, brands…" maxlength="100">
+          <button type="submit" aria-label="Search">🔍</button>
+        </form>
+      <% } %>
+
+      <%# ---------- Mobile menu button (public/js/main.js) ---------- %>
+      <button class="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="main-nav">☰</button>
+
+      <%# ---------- Navigation ---------- %>
+      <nav class="nav-links" id="main-nav" aria-label="Main navigation">
+        <a href="/listings" class="nav-link <%= browsing ? 'active' : '' %>">Browse</a>
+
+        <% if (user) { %>
+          <%# Role-specific links %>
+          <% if (user.isSeller) { %>
+            <a href="/requests/received" class="nav-link <%= currentPath.startsWith('/requests') ? 'active' : '' %>">Requests</a>
+            <a href="/listings/mine" class="nav-link <%= currentPath === '/listings/mine' ? 'active' : '' %>">My listings</a>
+          <% } else { %>
+            <a href="/favorites" class="nav-link <%= currentPath === '/favorites' ? 'active' : '' %>">Favorites</a>
+            <% if (locals.compareCount > 0) { %>
+              <a href="/compare" class="nav-link <%= currentPath === '/compare' ? 'active' : '' %>">Compare <span class="count-pill"><%= compareCount %></span></a>
+            <% } %>
+          <% } %>
+
+          <%# Icon buttons with unread badges %>
+          <a href="/messages" class="icon-link <%= currentPath.startsWith('/messages') ? 'active' : '' %>" aria-label="Messages" title="Messages">
+            💬<% if (locals.unreadMessages > 0) { %><span class="nav-badge icon-badge"><%= unreadMessages %></span><% } %>
+            <span class="icon-label">Messages</span>
+          </a>
+          <%# 🔔 Notifications created by the OBSERVERS; main.js refreshes the number %>
+          <a href="/notifications" class="icon-link bell <%= currentPath === '/notifications' ? 'active' : '' %>" aria-label="Notifications" title="Notifications" data-bell>
+            🔔<span class="nav-badge icon-badge" data-bell-count <%= locals.unreadNotifications > 0 ? '' : 'hidden' %>><%= locals.unreadNotifications %></span>
+            <span class="icon-label">Notifications</span>
+          </a>
+
+          <% if (user.isSeller) { %>
+            <a href="/listings/new" class="btn btn-small btn-accent">+ Sell</a>
+          <% } %>
+
+          <%# ---------- User menu (a <details> dropdown: works without JavaScript) ---------- %>
+          <details class="user-menu">
+            <summary aria-label="Account menu">
+              <span class="avatar avatar-sm" aria-hidden="true"><%= user.name.charAt(0).toUpperCase() %></span>
+              <span class="user-menu-name"><%= user.name.split(' ')[0] %></span>
+              <span class="caret" aria-hidden="true">▾</span>
+            </summary>
+            <div class="user-menu-panel">
+              <div class="user-menu-head">
+                <strong><%= user.name %></strong>
+                <span class="badge badge-<%= user.role %>"><%= user.isSeller ? 'Seller' : 'Buyer' %></span>
+              </div>
+              <a href="/dashboard">📊 Dashboard</a>
+              <a href="/users/<%= user._id %>">👤 My public profile</a>
+              <a href="/profile/edit">⚙️ Edit profile</a>
+              <hr>
+              <% if (user.isSeller) { %>
+                <a href="/listings/mine">📦 My listings</a>
+                <a href="/requests/received">📥 Purchase requests</a>
+                <a href="/requests/sales">📈 Sales history</a>
+              <% } else { %>
+                <a href="/requests/sent">📤 My purchase requests</a>
+                <a href="/requests/purchases">🧾 Purchase history</a>
+                <a href="/favorites">❤️ Favorites</a>
+              <% } %>
+              <hr>
+              <%# Logout is a POST form, not a link (see authController.logout) %>
+              <form action="/logout" method="POST">
+                <button type="submit" class="menu-logout">↪ Log out</button>
+              </form>
+            </div>
+          </details>
+        <% } else { %>
+          <%# ---------- Visitor ---------- %>
+          <a href="/about" class="nav-link <%= currentPath === '/about' ? 'active' : '' %>">About</a>
+          <a href="/register?role=seller" class="nav-link">Sell an appliance</a>
+          <a href="/login" class="nav-link <%= currentPath === '/login' ? 'active' : '' %>">Log in</a>
+          <a href="/register" class="btn btn-small">Sign up</a>
+        <% } %>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container main" id="main">
+    <%- include('alerts') %>

@@ -1,0 +1,14 @@
+<%#
+  pages/error.ejs - shown by middleware/errorHandler.js for 404/400/500
+  Data:  status (number), message (string)
+%>
+<%- include('../partials/header') %>
+
+<section class="section narrow error-page">
+  <div class="error-code"><%= status %></div>
+  <h1><%= status === 404 ? 'Page not found' : status === 403 ? 'Access denied' : 'Something went wrong' %></h1>
+  <p class="lead"><%= message %></p>
+  <a href="/" class="btn">Back to home</a>
+</section>
+
+<%- include('../partials/footer') %>
