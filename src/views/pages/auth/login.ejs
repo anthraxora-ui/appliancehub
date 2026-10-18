@@ -1,0 +1,22 @@
+<%#
+  pages/auth/login.ejs
+  Data from authController: values {email}, errors[]
+%>
+<%- include('../../partials/header') %>
+
+<section class="auth-card">
+  <h1>Log in</h1>
+  <p class="muted">New here? <a href="/register">Create an account</a></p>
+
+  <form action="/login" method="POST" class="form">
+    <label>Email
+      <input type="email" name="email" value="<%= values.email || '' %>" required autofocus autocomplete="email">
+    </label>
+    <label>Password
+      <input type="password" name="password" required autocomplete="current-password">
+    </label>
+    <button type="submit" class="btn btn-block">Log in</button>
+  </form>
+</section>
+
+<%- include('../../partials/footer') %>

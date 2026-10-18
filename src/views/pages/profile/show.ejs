@@ -1,0 +1,96 @@
+<%#
+  pages/profile/show.ejs  -  public profile
+  Data from profileController.showPublicProfile: profile, isOwnProfile
+  Only public information is shown (no email / phone).
+%>
+<%- include('../../partials/header') %>
+
+<% const memberSince = new Date(profile.createdAt).toLocaleDateString('en-CA', { year: 'numeric', month: 'long' }); %>
+
+<section class="profile-header panel">
+  <div class="avatar avatar-lg" aria-hidden="true"><%= profile.name.charAt(0).toUpperCase() %></div>
+  <div class="profile-info">
+    <h1><%= profile.name %></h1>
+    <p>
+      <span class="badge badge-<%= profile.role %>"><%= profile.role === 'seller' ? 'Seller' : 'Buyer' %></span>
+      <% if (profile.city) { %><span class="muted"> · 📍 <%= profile.city %></span><% } %>
+      <span class="muted"> · Member since <%= memberSince %></span>
+    </p>
+
+    <% if (profile.role === 'seller') { %>
+      <%# Star rating: filled stars for the rounded average, empty for the rest %>
+      <% const stars = Math.round(profile.ratingAverage); %>
+      <p class="rating" aria-label="Rating <%= profile.ratingAverage.toFixed(1) %> out of 5">
+        <span class="stars"><%= '★'.repeat(stars) %><span class="stars-empty"><%= '★'.repeat(5 - stars) %></span></span>
+        <% if (profile.ratingCount > 0) { %>
+          <strong><%= profile.ratingAverage.toFixed(1) %></strong>
+          <span class="muted">(<%= profile.ratingCount %> review<%= profile.ratingCount === 1 ? '' : 's' %>)</span>
+        <% } else { %>
+          <span class="muted">No reviews yet</span>
+        <% } %>
+      </p>
+    <% } %>
+
+    <% if (profile.bio) { %><p><%= profile.bio %></p><% } %>
+  </div>
+  <% if (isOwnProfile) { %>
+    <a href="/profile/edit" class="btn btn-outline btn-small">Edit</a>
+  <% } %>
+</section>
+
+<% if (profile.role === 'seller') { %>
+  <section class="section">
+    <h2>Listings (<%= listings.length %>)</h2>
+    <% if (listings.length === 0) { %>
+      <p class="empty-state">This seller has no active listings.</p>
+    <% } else { %>
+      <div class="listing-grid">
+        <% listings.forEach(function (l) { %>
+          <%- include('../../partials/listing-card', { listing: l }) %>
+        <% }) %>
+      </div>
+    <% } %>
+  </section>
+
+  <section class="section" id="reviews">
+    <h2>Reviews (<%= reviews.length %>)</h2>
+    <% if (reviews.length === 0) { %>
+      <p class="empty-state">No reviews yet.</p>
+    <% } else { %>
+      <div class="reviews-layout">
+        <%# Summary: average + how many reviews gave each number of stars %>
+        <div class="panel rating-summary">
+          <div class="rating-big"><%= profile.ratingAverage.toFixed(1) %></div>
+          <div class="stars"><%= '★'.repeat(Math.round(profile.ratingAverage)) %><span class="stars-empty"><%= '★'.repeat(5 - Math.round(profile.ratingAverage)) %></span></div>
+          <div class="muted small"><%= profile.ratingCount %> review<%= profile.ratingCount === 1 ? '' : 's' %></div>
+          <div class="dist">
+            <% distribution.forEach(function (d) { %>
+              <div class="dist-row">
+                <span><%= d.stars %>★</span>
+                <span class="dist-bar"><span style="width: <%= reviews.length ? Math.round(d.count / reviews.length * 100) : 0 %>%"></span></span>
+                <span class="muted"><%= d.count %></span>
+              </div>
+            <% }) %>
+          </div>
+        </div>
+
+        <%# The reviews themselves %>
+        <ul class="review-list">
+          <% reviews.forEach(function (r) { %>
+            <li class="panel review">
+              <div class="review-head">
+                <span class="stars" aria-label="<%= r.rating %> out of 5"><%= '★'.repeat(r.rating) %><span class="stars-empty"><%= '★'.repeat(5 - r.rating) %></span></span>
+                <strong><%= r.buyer ? r.buyer.name : 'A buyer' %></strong>
+                <span class="muted small">· <%= formatDate(r.createdAt) %></span>
+              </div>
+              <div class="muted small">Bought: <%= r.listingTitle %></div>
+              <% if (r.comment) { %><p class="pre-line"><%= r.comment %></p><% } %>
+            </li>
+          <% }) %>
+        </ul>
+      </div>
+    <% } %>
+  </section>
+<% } %>
+
+<%- include('../../partials/footer') %>

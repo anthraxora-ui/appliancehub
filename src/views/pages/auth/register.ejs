@@ -1,0 +1,61 @@
+<%#
+  pages/auth/register.ejs
+  Data from authController: values {name,email,role,city}, errors[], minPasswordLength
+  The browser checks (required, minlength, type=email) give instant feedback;
+  the server checks again because browser checks can be bypassed.
+%>
+<%- include('../../partials/header') %>
+
+<section class="auth-card">
+  <h1>Create your account</h1>
+  <p class="muted">Already registered? <a href="/login">Log in</a></p>
+
+  <form action="/register" method="POST" class="form" novalidate>
+    <%# ---- Role picker: the two user roles of the system ---- %>
+    <fieldset class="role-picker">
+      <legend>I want to...</legend>
+      <label class="role-option">
+        <input type="radio" name="role" value="buyer" <%= values.role !== 'seller' ? 'checked' : '' %>>
+        <span class="role-box">
+          <span class="role-emoji">🛒</span>
+          <strong>Buy</strong>
+          <small>Find, compare and request appliances</small>
+        </span>
+      </label>
+      <label class="role-option">
+        <input type="radio" name="role" value="seller" <%= values.role === 'seller' ? 'checked' : '' %>>
+        <span class="role-box">
+          <span class="role-emoji">🏷️</span>
+          <strong>Sell</strong>
+          <small>List appliances and manage sales</small>
+        </span>
+      </label>
+    </fieldset>
+
+    <label>Full name
+      <input type="text" name="name" value="<%= values.name || '' %>" required minlength="2" maxlength="50" autocomplete="name">
+    </label>
+
+    <label>Email
+      <input type="email" name="email" value="<%= values.email || '' %>" required autocomplete="email">
+    </label>
+
+    <label>City <span class="muted">(optional, helps buyers find local items)</span>
+      <input type="text" name="city" value="<%= values.city || '' %>" maxlength="60" autocomplete="address-level2">
+    </label>
+
+    <div class="form-row">
+      <label>Password
+        <input type="password" name="password" required minlength="<%= minPasswordLength %>" autocomplete="new-password">
+        <small class="muted">At least <%= minPasswordLength %> characters</small>
+      </label>
+      <label>Confirm password
+        <input type="password" name="confirmPassword" required autocomplete="new-password">
+      </label>
+    </div>
+
+    <button type="submit" class="btn btn-block">Create account</button>
+  </form>
+</section>
+
+<%- include('../../partials/footer') %>

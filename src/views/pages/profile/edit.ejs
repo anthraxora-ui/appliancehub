@@ -1,0 +1,61 @@
+<%#
+  pages/profile/edit.ejs
+  Two separate forms: profile details, and password change.
+  Data from profileController: values (user fields), errors[], minPasswordLength
+%>
+<%- include('../../partials/header') %>
+
+<section class="section narrow">
+  <h1>Edit profile</h1>
+
+  <div class="panel">
+    <h2>Your details</h2>
+    <form action="/profile" method="POST" class="form">
+      <%# Email and role are shown read-only: they cannot be changed here %>
+      <div class="form-row">
+        <label>Email
+          <input type="email" value="<%= values.email %>" disabled>
+        </label>
+        <label>Account type
+          <input type="text" value="<%= values.role === 'seller' ? 'Seller' : 'Buyer' %>" disabled>
+        </label>
+      </div>
+
+      <label>Full name
+        <input type="text" name="name" value="<%= values.name %>" required minlength="2" maxlength="50">
+      </label>
+      <div class="form-row">
+        <label>Phone <span class="muted">(optional)</span>
+          <input type="tel" name="phone" value="<%= values.phone || '' %>" maxlength="20">
+        </label>
+        <label>City
+          <input type="text" name="city" value="<%= values.city || '' %>" maxlength="60">
+        </label>
+      </div>
+      <label>About you <span class="muted">(max 500 characters)</span>
+        <textarea name="bio" rows="4" maxlength="500"><%= values.bio || '' %></textarea>
+      </label>
+      <button type="submit" class="btn">Save changes</button>
+    </form>
+  </div>
+
+  <div class="panel">
+    <h2>Change password</h2>
+    <form action="/profile/password" method="POST" class="form">
+      <label>Current password
+        <input type="password" name="currentPassword" required autocomplete="current-password">
+      </label>
+      <div class="form-row">
+        <label>New password
+          <input type="password" name="newPassword" required minlength="<%= minPasswordLength %>" autocomplete="new-password">
+        </label>
+        <label>Confirm new password
+          <input type="password" name="confirmPassword" required autocomplete="new-password">
+        </label>
+      </div>
+      <button type="submit" class="btn btn-outline">Update password</button>
+    </form>
+  </div>
+</section>
+
+<%- include('../../partials/footer') %>
